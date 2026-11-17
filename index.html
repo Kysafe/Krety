@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#151b16">
+  <title>Krety — łączenie z grą</title>
+  <style>
+    :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#151b16;color:#edf3e9}
+    body{min-height:100vh;display:grid;place-items:center;margin:0;padding:24px;box-sizing:border-box}
+    main{max-width:440px;text-align:center;padding:32px;border:1px solid #ffffff20;border-radius:16px;background:#1d281f}
+    h1{margin:0 0 12px;font-size:28px}p{color:#c2d0c2;line-height:1.55}a{color:#b5ed91}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Łączę z grą…</h1>
+    <p id="status">Pobieram aktualny adres serwera.</p>
+    <p id="fallback" hidden>Jeśli przekierowanie nie nastąpi, odśwież stronę za chwilę.</p>
+  </main>
+  <script>
+    const status = document.querySelector('#status');
+    const fallback = document.querySelector('#fallback');
+    fetch(`./server-url.json?t=${Date.now()}`, { cache: 'no-store' })
+      .then(response => {
+        if (!response.ok) throw new Error('Adres serwera jest niedostępny.');
+        return response.json();
+      })
+      .then(({ url }) => {
+        const target = new URL(url);
+        if (target.protocol !== 'https:' || !target.hostname.endsWith('.trycloudflare.com')) {
+          throw new Error('Adres gry nie jest jeszcze skonfigurowany.');
+        }
+        status.textContent = 'Serwer znaleziony. Przekierowuję…';
+        fallback.hidden = false;
+        window.location.replace(target.href);
+      })
+      .catch(error => {
+        status.textContent = error.message || 'Nie udało się odnaleźć serwera.';
+      });
+  </script>
+</body>
+</html>
